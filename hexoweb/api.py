@@ -738,9 +738,12 @@ def upload_img(request):
                 image.date = time()
                 image.deleteConfig = json.dumps(res[1])
                 image.save()
+                context["data"] = {"name": image.name, "size": convert_to_kb_mb_gb(int(image.size)), "url": escape(image.url),
+                                   "date": strftime("%Y-%m-%d %H:%M:%S", localtime(float(image.date))),
+                                   "time": str(image.date)}
         except Exception as error:
             logging.error(repr(error))
-            context = {"msg": repr(error), "url": False}
+            context = {"msg": repr(error), "url": False, "status": False}
     return JsonResponse(safe=False, data=context)
 
 
@@ -816,6 +819,7 @@ def get_notifications(request):
     try:
         # 检查更新
         latest = get_latest_version()
+        latest["newer_text"] = latest["newer_text"].replace("<h2>", "<h5>")
         if latest["status"]:
             cache = Cache.objects.filter(name="update")
             if cache.count():
